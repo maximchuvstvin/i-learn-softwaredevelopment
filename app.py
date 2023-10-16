@@ -140,7 +140,9 @@ column_order = ['maker',
                 'date_posted',
                 'days_listed']
 col2.subheader('Our dataset')
-col2.dataframe(df_filtered, hide_index=True, column_order=column_order)
+col2.dataframe(df_filtered,
+               # hide_index=True,
+               column_order=column_order)
 
 # figure 1
 col2.subheader('Number of ads over Price')
