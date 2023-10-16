@@ -92,7 +92,7 @@ selected_makers = col0.multiselect('Manufacturer', makers, makers)
 selected_makers_b = df_final['maker'].isin(selected_makers)
 
 # 2. price range
-min_price, max_price = col0.slider('Set price range', 0, df_final['price'].max(), (0, df_final['price'].max()), step=1000)
+min_price, max_price = col0.slider('Set price range', 0, int(df_final['price'].max()), (0, df_final['price'].max()), step=1000)
 price_range_b = (df_final['price'] >= min_price) & (df_final['price'] <= max_price)
 
 # 3. color
