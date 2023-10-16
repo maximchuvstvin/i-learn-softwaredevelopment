@@ -92,7 +92,8 @@ selected_makers = col0.multiselect('Manufacturer', makers, makers)
 selected_makers_b = df_final['maker'].isin(selected_makers)
 
 # 2. price range
-min_price, max_price = col0.slider('Set price range', 0, int(df_final['price'].max()), (0, df_final['price'].max()), step=1000)
+current_max_price = int(df_final['price'].max())
+min_price, max_price = col0.slider('Set price range', 0, current_max_price, (0, current_max_price), step=1000)
 price_range_b = (df_final['price'] >= min_price) & (df_final['price'] <= max_price)
 
 # 3. color
@@ -142,6 +143,7 @@ col2.subheader('Our dataset')
 col2.dataframe(df_filtered, hide_index=True, column_order=column_order)
 
 # figure 1
+col2.subheader('Number of ads over Price')
 fig = px.histogram(df_filtered,
                    x='price',
                    nbins=30,
@@ -149,23 +151,25 @@ fig = px.histogram(df_filtered,
                    category_orders={'condition':condition_order},                   
                    # histnorm='probability',
                    # barmode='stack',
-                   title = 'Number of ads over Price',
+                   # title = 'Number of ads over Price',
                    width = 1000, height=500)
 
 col2.plotly_chart(fig)
 
 # figure 2
+col2.subheader('Car price over odometer')
 fig1 = px.scatter(df_filtered,
                      x='odometer',
                      y='price',
                      color='condition',
                      category_orders={'condition':condition_order},
                      opacity=0.8,
-                     title = 'Car price over odometer',
+                     # title = 'Car price over odometer',
                      width = 1000, height=500)
 col2.plotly_chart(fig1)
 
 # figure 3
+col2.subheader('Heatmap of average Price over odometer and age')
 fig2 = px.density_heatmap(df_filtered,
                           x="odometer", y="model_year", z="price",
                           histfunc="avg",
@@ -176,7 +180,7 @@ fig2 = px.density_heatmap(df_filtered,
                           range_x = [0, 290000], range_y = [1950, 2019],
                           category_orders={'condition':condition_order},                          
                           nbinsx=100, nbinsy=150,
-                          title='Heatmap of average Price over odometer and age',
+                          # title='Heatmap of average Price over odometer and age',
                           width = 1000, height=500)
 fig2.update_layout(xaxis=dict(showgrid=False), yaxis=dict(showgrid=False))
 col2.plotly_chart(fig2)
