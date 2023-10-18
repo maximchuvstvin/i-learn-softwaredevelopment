@@ -37,13 +37,17 @@ unwanted = ['days_listed']
 col_to_check = [x for x in df.columns if x not in unwanted]
 df = df.drop_duplicates(subset=col_to_check)
 
-# function to choose DataFrame for analysis (either drop NaN or replace with -1 to track them further, remove top outliers in price and odometer)
+# function to create DataFrame for analysis (either drop NaN or replace them with median; remove top outliers in price and odometer)
+@st.cache_data
 def dropping(df_input, drop_na : bool = False, drop_outliers : bool = False, quantile_to_drop = 0.01):
+    # crreate copy of dataset in order not to change the initial one
+    df = df_input.copy()
+    # check if input quantile is correct
     if drop_outliers and not 0 <= quantile_to_drop <= 1: 
         print('set correct quantile from 0 to 1')
         return
     elif drop_na:
-        df = df_input.dropna()
+        df = df.dropna()
         if drop_outliers:
             q_hi_p  = df['price'].quantile(1-quantile_to_drop)
             q_low_p = df['price'].quantile(quantile_to_drop)
@@ -54,7 +58,14 @@ def dropping(df_input, drop_na : bool = False, drop_outliers : bool = False, qua
         else:
              return df         
     else:
-        df = df_input.fillna(-1)
+        df['model_year'] = df['model_year'].fillna(df.groupby(['model'])['model_year'].transform('median'))
+        df['cylinders'] = df['cylinders'].fillna(df.groupby(['model','transmission'])['cylinders'].transform('median'))
+        df['cylinders'] = df['cylinders'].fillna(df.groupby(['model'])['cylinders'].transform('median'))
+        df['odometer'] = df['odometer'].fillna(df.groupby(['model','model_year','type','condition'])['odometer'].transform('median'))
+        df['odometer'] = df['odometer'].fillna(df.groupby(['model_year','type','condition'])['odometer'].transform('median'))
+        df['odometer'] = df['odometer'].fillna(df.groupby(['model_year','condition'])['odometer'].transform('median'))
+        df['odometer'] = df['odometer'].fillna(df.groupby(['model_year'])['odometer'].transform('median'))
+        df['odometer'] = df['odometer'].fillna(df.groupby(['condition'])['odometer'].transform('median'))
         if drop_outliers:
             q_hi_p  = df['price'].quantile(1-quantile_to_drop)
             q_low_p = df['price'].quantile(quantile_to_drop)
@@ -76,7 +87,7 @@ col1, col2, col3 = st.columns([2,5,2])
 col0.header('Controls')
 
 # drop NA and outliers
-drop_na = col0.checkbox('delete ads with missing information?')
+drop_na = col0.checkbox('delete ads with missing information? Otherwise, missing values are replaced with medians.')
 outliers = col0.checkbox('delete outliers?')
 
 quantile_to_drop = 0
@@ -144,6 +155,22 @@ col2.dataframe(df_filtered,
                # hide_index=True,
                column_order=column_order)
 
+
+#let's create button to download data as csv
+@st.cache_data
+def convert_to_csv(df):
+    #Cache the conversion to prevent computation on every rerun
+    return df.to_csv(index=False).encode('utf-8')
+
+csv = convert_to_csv(df_filtered)
+
+col2.download_button(
+    label="Download data as CSV",
+    data=csv,
+    file_name='list_of_vehicles.csv',
+    mime='text/csv'
+    )
+
 # figure 1
 col2.subheader('Number of ads over Price')
 fig = px.histogram(df_filtered,
@@ -188,7 +215,7 @@ fig2.update_layout(xaxis=dict(showgrid=False), yaxis=dict(showgrid=False))
 col2.plotly_chart(fig2)
 
 # figure 4
-col2.subheader('Just for fun: look most popular model and their prices')
+col2.subheader('Just for fun: let\'s look at the most popular models and their average prices')
 fig3 = px.sunburst(df_filtered, path=['maker', 'model_sep'],
                    #values='pop',
                   color='price',

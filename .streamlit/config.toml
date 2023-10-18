@@ -8,8 +8,8 @@ serverPort = 10000
 
 
 [theme]
-primaryColor="#48c6ec"
+primaryColor="#029dd0"
 backgroundColor="#FFFFFF"
 secondaryBackgroundColor="#F0F2F6"
-textColor="#029dd0"
+textColor="#31333F"
 font="sans serif"
